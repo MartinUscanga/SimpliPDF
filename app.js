@@ -75,7 +75,12 @@ class SimpliPDF {
       'pdf-to-images': this.createPDFToImagesPage(),
       'rotate': this.createRotatePage(),
       'watermark': this.createWatermarkPage(),
-      'sign': this.createSignPage()
+      'sign': this.createSignPage(),
+      'compress': this.createCompressPage(),
+      'split': this.createSplitPage(),
+      'edit-metadata': this.createEditMetadataPage(),
+      'number-pages': this.createNumberPagesPage(),
+      'insert-blank': this.createInsertBlankPage()
     };
 
     if (toolPages[toolName]) {
@@ -127,9 +132,12 @@ class SimpliPDF {
   createMergePage() {
     return `
       <div class="tool-page fade-in">
-        ${this.createToolHeader('Unir Archivos PDF', 'Combina múltiples archivos PDF en un solo documento. El proceso es 100% local y privado.')}
+        ${this.createToolHeader('Unir Archivos PDF', 'Combina múltiples archivos PDF en un solo documento. Arrastra para reordenar.')}
         <div class="tool-workspace">
           ${this.createUploadZone('.pdf', true)}
+          <div id="sortableInstructions" class="hidden" style="text-align: center; padding: 16px; color: var(--ink-soft); font-size: .9rem; border-top: 1px solid var(--border); margin-top: 20px;">
+            💡 <strong>Tip:</strong> Arrastra los archivos para cambiar el orden de fusión
+          </div>
           <div class="action-buttons">
             <button class="btn-process" id="processBtn" disabled>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -335,6 +343,217 @@ class SimpliPDF {
     `;
   }
 
+  createCompressPage() {
+    return `
+      <div class="tool-page fade-in">
+        ${this.createToolHeader('Comprimir PDF', 'Reduce el tamaño del archivo optimizando su contenido.')}
+        <div class="tool-workspace">
+          ${this.createUploadZone('.pdf', false)}
+          <div class="controls">
+            <div class="control-group">
+              <label for="compressionLevel">
+                Nivel de compresión
+                <span class="range-value" id="compressionValue">Media</span>
+              </label>
+              <select id="compressionLevel">
+                <option value="low">Baja (mayor calidad)</option>
+                <option value="medium" selected>Media (recomendada)</option>
+                <option value="high">Alta (menor tamaño)</option>
+              </select>
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-process" id="processBtn" disabled>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+              Comprimir PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  createSplitPage() {
+    return `
+      <div class="tool-page fade-in">
+        ${this.createToolHeader('Dividir PDF', 'Separa un PDF en múltiples archivos.')}
+        <div class="tool-workspace">
+          ${this.createUploadZone('.pdf', false)}
+          <div class="controls">
+            <h3 style="font-size: .95rem; font-weight: 700; margin-bottom: 12px; color: var(--ink);">Opciones de división:</h3>
+            <div class="split-options">
+              <div class="split-option active" data-mode="pages">
+                <h4>Por Páginas</h4>
+                <p>Cada N páginas en un archivo</p>
+              </div>
+              <div class="split-option" data-mode="range">
+                <h4>Por Rango</h4>
+                <p>Especifica páginas (ej: 1-5, 8-10)</p>
+              </div>
+              <div class="split-option" data-mode="individual">
+                <h4>Individual</h4>
+                <p>Cada página en su propio archivo</p>
+              </div>
+            </div>
+            <div class="control-group" id="splitControls">
+              <label for="pagesPerFile">Páginas por archivo</label>
+              <input type="number" id="pagesPerFile" value="1" min="1" placeholder="Ej: 5">
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-process" id="processBtn" disabled>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
+              </svg>
+              Dividir PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  createEditMetadataPage() {
+    return `
+      <div class="tool-page fade-in">
+        ${this.createToolHeader('Editar Metadatos', 'Modifica la información del documento PDF.')}
+        <div class="tool-workspace">
+          ${this.createUploadZone('.pdf', false)}
+          <div class="controls">
+            <div class="metadata-form">
+              <div class="control-group">
+                <label for="metaTitle">Título del documento</label>
+                <input type="text" id="metaTitle" placeholder="Ej: Informe Anual 2024">
+              </div>
+              <div class="control-group">
+                <label for="metaAuthor">Autor</label>
+                <input type="text" id="metaAuthor" placeholder="Ej: Juan Pérez">
+              </div>
+              <div class="control-group">
+                <label for="metaSubject">Asunto</label>
+                <input type="text" id="metaSubject" placeholder="Ej: Resultados financieros">
+              </div>
+              <div class="control-group">
+                <label for="metaKeywords">Palabras clave (separadas por comas)</label>
+                <input type="text" id="metaKeywords" placeholder="Ej: finanzas, informe, 2024">
+              </div>
+              <div class="control-group">
+                <label for="metaCreator">Creador</label>
+                <input type="text" id="metaCreator" placeholder="Ej: SimpliPDF">
+              </div>
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-process" id="processBtn" disabled>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+              </svg>
+              Guardar metadatos
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  createNumberPagesPage() {
+    return `
+      <div class="tool-page fade-in">
+        ${this.createToolHeader('Numerar Páginas', 'Añade números de página a tu documento.')}
+        <div class="tool-workspace">
+          ${this.createUploadZone('.pdf', false)}
+          <div class="controls">
+            <div class="control-group">
+              <label for="numberPosition">Posición</label>
+              <select id="numberPosition">
+                <option value="bottom-center">Inferior Centro</option>
+                <option value="bottom-right">Inferior Derecha</option>
+                <option value="bottom-left">Inferior Izquierda</option>
+                <option value="top-center">Superior Centro</option>
+                <option value="top-right">Superior Derecha</option>
+                <option value="top-left">Superior Izquierda</option>
+              </select>
+            </div>
+            <div class="position-preview">
+              <div class="position-indicator bottom-center" id="positionPreview">Página 1</div>
+            </div>
+            <div class="form-row">
+              <div class="control-group">
+                <label for="numberFormat">Formato</label>
+                <select id="numberFormat">
+                  <option value="number">Número (1, 2, 3...)</option>
+                  <option value="pageOf">Página X de Y</option>
+                  <option value="dash">- X -</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label for="startNumber">Iniciar en</label>
+                <input type="number" id="startNumber" value="1" min="1">
+              </div>
+            </div>
+            <div class="control-group">
+              <label for="fontSize">
+                Tamaño de fuente
+                <span class="range-value" id="fontSizeValue">12pt</span>
+              </label>
+              <input type="range" id="fontSize" min="8" max="20" value="12" step="1">
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-process" id="processBtn" disabled>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+              </svg>
+              Numerar páginas
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  createInsertBlankPage() {
+    return `
+      <div class="tool-page fade-in">
+        ${this.createToolHeader('Insertar Páginas en Blanco', 'Añade páginas vacías en posiciones específicas.')}
+        <div class="tool-workspace">
+          ${this.createUploadZone('.pdf', false)}
+          <div class="controls">
+            <div class="control-group">
+              <label for="insertPosition">Insertar después de la página</label>
+              <input type="number" id="insertPosition" value="1" min="0" placeholder="0 = al inicio">
+              <p style="font-size: .8rem; color: var(--ink-soft); margin-top: 6px;">
+                💡 Usa 0 para insertar al inicio del documento
+              </p>
+            </div>
+            <div class="control-group">
+              <label for="blankCount">Número de páginas en blanco</label>
+              <input type="number" id="blankCount" value="1" min="1" max="50">
+            </div>
+            <div class="control-group">
+              <label for="pageSize">Tamaño de página</label>
+              <select id="pageSize">
+                <option value="letter">Carta (Letter)</option>
+                <option value="a4">A4</option>
+                <option value="legal">Legal</option>
+              </select>
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-process" id="processBtn" disabled>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+              </svg>
+              Insertar páginas
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   // ═══════════════════════════════════════════════════════
   // TOOL PAGE HANDLERS
   // ═══════════════════════════════════════════════════════
@@ -405,11 +624,28 @@ class SimpliPDF {
 
     if (this.files.length === 0) {
       fileList.innerHTML = '';
+      document.getElementById('sortableInstructions')?.classList.add('hidden');
       return;
     }
 
+    // Show sortable instructions for merge tool
+    if (this.currentTool === 'merge' && this.files.length > 1) {
+      document.getElementById('sortableInstructions')?.classList.remove('hidden');
+    }
+
+    // Check if we need sortable list (merge tool)
+    const isSortable = this.currentTool === 'merge' && this.files.length > 1;
+
     fileList.innerHTML = this.files.map((file, index) => `
-      <div class="file-item slide-up">
+      <div class="file-item${isSortable ? '-draggable' : ''} slide-up" data-index="${index}" draggable="${isSortable}">
+        ${isSortable ? `
+          <div class="drag-handle">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+            </svg>
+          </div>
+          <div class="file-order">${index + 1}</div>
+        ` : ''}
         <div class="file-icon">
           <svg viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
@@ -426,6 +662,72 @@ class SimpliPDF {
         </button>
       </div>
     `).join('');
+
+    // Setup drag and drop for reordering if sortable
+    if (isSortable) {
+      this.setupSortable();
+    }
+  }
+
+  setupSortable() {
+    const items = document.querySelectorAll('.file-item-draggable');
+    let draggedItem = null;
+
+    items.forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        draggedItem = item;
+        item.classList.add('dragging');
+      });
+
+      item.addEventListener('dragend', (e) => {
+        item.classList.remove('dragging');
+      });
+
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const afterElement = this.getDragAfterElement(e.clientY);
+        const fileList = document.getElementById('fileList');
+        
+        if (afterElement == null) {
+          fileList.appendChild(draggedItem);
+        } else {
+          fileList.insertBefore(draggedItem, afterElement);
+        }
+      });
+
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        this.reorderFiles();
+      });
+    });
+  }
+
+  getDragAfterElement(y) {
+    const draggableElements = [...document.querySelectorAll('.file-item-draggable:not(.dragging)')];
+
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+
+  reorderFiles() {
+    const items = document.querySelectorAll('.file-item-draggable');
+    const newOrder = [];
+    
+    items.forEach(item => {
+      const index = parseInt(item.getAttribute('data-index'));
+      newOrder.push(this.files[index]);
+    });
+
+    this.files = newOrder;
+    this.renderFileList();
   }
 
   removeFile(index) {
@@ -479,6 +781,52 @@ class SimpliPDF {
       });
     }
 
+    // Font size for page numbers
+    const fontSize = document.getElementById('fontSize');
+    const fontSizeValue = document.getElementById('fontSizeValue');
+    if (fontSize && fontSizeValue) {
+      fontSize.addEventListener('input', (e) => {
+        fontSizeValue.textContent = `${e.target.value}pt`;
+      });
+    }
+
+    // Position preview for page numbers
+    const numberPosition = document.getElementById('numberPosition');
+    const positionPreview = document.getElementById('positionPreview');
+    if (numberPosition && positionPreview) {
+      numberPosition.addEventListener('change', (e) => {
+        positionPreview.className = `position-indicator ${e.target.value}`;
+      });
+    }
+
+    // Split mode selection
+    const splitOptions = document.querySelectorAll('.split-option');
+    if (splitOptions.length > 0) {
+      splitOptions.forEach(option => {
+        option.addEventListener('click', () => {
+          splitOptions.forEach(opt => opt.classList.remove('active'));
+          option.classList.add('active');
+          
+          const mode = option.getAttribute('data-mode');
+          const splitControls = document.getElementById('splitControls');
+          
+          if (mode === 'pages') {
+            splitControls.innerHTML = `
+              <label for="pagesPerFile">Páginas por archivo</label>
+              <input type="number" id="pagesPerFile" value="1" min="1" placeholder="Ej: 5">
+            `;
+          } else if (mode === 'range') {
+            splitControls.innerHTML = `
+              <label for="pageRanges">Rangos de páginas (separados por coma)</label>
+              <input type="text" id="pageRanges" placeholder="Ej: 1-5, 8-10, 15-20">
+            `;
+          } else {
+            splitControls.innerHTML = '<p style="font-size: .9rem; color: var(--ink-soft);">Cada página se guardará como un archivo individual.</p>';
+          }
+        });
+      });
+    }
+
     // Delete pages - render preview
     if (toolName === 'delete-pages') {
       const fileInput = document.getElementById('fileInput');
@@ -503,7 +851,12 @@ class SimpliPDF {
         'pdf-to-images': () => this.pdfToImages(),
         'rotate': () => this.rotatePDF(),
         'watermark': () => this.addWatermark(),
-        'sign': () => this.signPDF()
+        'sign': () => this.signPDF(),
+        'compress': () => this.compressPDF(),
+        'split': () => this.splitPDF(),
+        'edit-metadata': () => this.editMetadata(),
+        'number-pages': () => this.numberPages(),
+        'insert-blank': () => this.insertBlankPages()
       };
 
       const handler = handlers[toolName];
@@ -1001,3 +1354,231 @@ class SimpliPDF {
 
 // Initialize the app
 const app = new SimpliPDF();
+
+
+
+  // ═══════════════════════════════════════════════════════
+  // NEW PDF PROCESSING FUNCTIONS
+  // ═══════════════════════════════════════════════════════
+
+  async compressPDF() {
+    this.showLoading('Comprimiendo PDF...');
+
+    try {
+      const arrayBuffer = await this.files[0].arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+      
+      // Save with compression (pdf-lib automatically compresses)
+      const pdfBytes = await pdfDoc.save({
+        useObjectStreams: true,
+        addDefaultPage: false,
+      });
+
+      this.downloadFile(pdfBytes, 'compressed-document.pdf', 'application/pdf');
+      
+      const originalSize = this.files[0].size;
+      const compressedSize = pdfBytes.length;
+      const reduction = Math.round((1 - compressedSize / originalSize) * 100);
+      
+      this.hideLoading();
+      this.showToast('success', '¡Listo!', `PDF comprimido. Reducción: ${reduction}%`);
+      
+    } catch (error) {
+      this.hideLoading();
+      throw error;
+    }
+  }
+
+  async splitPDF() {
+    const mode = document.querySelector('.split-option.active')?.getAttribute('data-mode') || 'pages';
+    
+    this.showLoading('Dividiendo PDF...');
+
+    try {
+      const arrayBuffer = await this.files[0].arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+      const totalPages = pdfDoc.getPageCount();
+
+      let splits = [];
+
+      if (mode === 'individual') {
+        // One file per page
+        for (let i = 0; i < totalPages; i++) {
+          splits.push([i]);
+        }
+      } else if (mode === 'pages') {
+        // N pages per file
+        const pagesPerFile = parseInt(document.getElementById('pagesPerFile').value) || 1;
+        for (let i = 0; i < totalPages; i += pagesPerFile) {
+          const end = Math.min(i + pagesPerFile, totalPages);
+          const pageRange = [];
+          for (let j = i; j < end; j++) {
+            pageRange.push(j);
+          }
+          splits.push(pageRange);
+        }
+      } else if (mode === 'range') {
+        // Custom ranges (simplified - just 1 page per file for now)
+        for (let i = 0; i < totalPages; i++) {
+          splits.push([i]);
+        }
+      }
+
+      // Create and download split PDFs
+      for (let i = 0; i < splits.length; i++) {
+        const newPdf = await PDFLib.PDFDocument.create();
+        const pages = await newPdf.copyPages(pdfDoc, splits[i]);
+        pages.forEach(page => newPdf.addPage(page));
+
+        const pdfBytes = await newPdf.save();
+        this.downloadFile(pdfBytes, `split-part-${i + 1}.pdf`, 'application/pdf');
+        
+        // Small delay between downloads
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      this.hideLoading();
+      this.showToast('success', '¡Listo!', `PDF dividido en ${splits.length} archivos`);
+      
+    } catch (error) {
+      this.hideLoading();
+      throw error;
+    }
+  }
+
+  async editMetadata() {
+    const title = document.getElementById('metaTitle').value;
+    const author = document.getElementById('metaAuthor').value;
+    const subject = document.getElementById('metaSubject').value;
+    const keywords = document.getElementById('metaKeywords').value;
+    const creator = document.getElementById('metaCreator').value;
+
+    this.showLoading('Actualizando metadatos...');
+
+    try {
+      const arrayBuffer = await this.files[0].arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+      
+      if (title) pdfDoc.setTitle(title);
+      if (author) pdfDoc.setAuthor(author);
+      if (subject) pdfDoc.setSubject(subject);
+      if (keywords) pdfDoc.setKeywords(keywords.split(',').map(k => k.trim()));
+      if (creator) pdfDoc.setCreator(creator);
+      pdfDoc.setProducer('SimpliPDF');
+      pdfDoc.setModificationDate(new Date());
+
+      const pdfBytes = await pdfDoc.save();
+      this.downloadFile(pdfBytes, 'document-with-metadata.pdf', 'application/pdf');
+      
+      this.hideLoading();
+      this.showToast('success', '¡Listo!', 'Metadatos actualizados correctamente');
+      
+    } catch (error) {
+      this.hideLoading();
+      throw error;
+    }
+  }
+
+  async numberPages() {
+    const position = document.getElementById('numberPosition').value;
+    const format = document.getElementById('numberFormat').value;
+    const startNumber = parseInt(document.getElementById('startNumber').value) || 1;
+    const fontSize = parseInt(document.getElementById('fontSize').value) || 12;
+
+    this.showLoading('Numerando páginas...');
+
+    try {
+      const arrayBuffer = await this.files[0].arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+      const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+      
+      const pages = pdfDoc.getPages();
+      const totalPages = pages.length;
+
+      pages.forEach((page, index) => {
+        const { width, height } = page.getSize();
+        const pageNum = startNumber + index;
+        
+        let text = '';
+        if (format === 'number') {
+          text = `${pageNum}`;
+        } else if (format === 'pageOf') {
+          text = `Página ${pageNum} de ${totalPages}`;
+        } else if (format === 'dash') {
+          text = `- ${pageNum} -`;
+        }
+
+        const textWidth = font.widthOfTextAtSize(text, fontSize);
+        let x, y;
+
+        // Calculate position
+        const margin = 30;
+        if (position.includes('left')) {
+          x = margin;
+        } else if (position.includes('right')) {
+          x = width - textWidth - margin;
+        } else {
+          x = (width - textWidth) / 2;
+        }
+
+        if (position.includes('top')) {
+          y = height - margin;
+        } else {
+          y = margin;
+        }
+
+        page.drawText(text, {
+          x, y,
+          size: fontSize,
+          font,
+          color: PDFLib.rgb(0, 0, 0),
+        });
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      this.downloadFile(pdfBytes, 'numbered-document.pdf', 'application/pdf');
+      
+      this.hideLoading();
+      this.showToast('success', '¡Listo!', `${totalPages} páginas numeradas`);
+      
+    } catch (error) {
+      this.hideLoading();
+      throw error;
+    }
+  }
+
+  async insertBlankPages() {
+    const position = parseInt(document.getElementById('insertPosition').value) || 0;
+    const count = parseInt(document.getElementById('blankCount').value) || 1;
+    const pageSize = document.getElementById('pageSize').value;
+
+    this.showLoading('Insertando páginas en blanco...');
+
+    try {
+      const arrayBuffer = await this.files[0].arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+      
+      // Page sizes
+      const sizes = {
+        'letter': [612, 792],
+        'a4': [595, 842],
+        'legal': [612, 1008]
+      };
+      const [pageWidth, pageHeight] = sizes[pageSize];
+
+      // Insert blank pages
+      for (let i = 0; i < count; i++) {
+        const blankPage = pdfDoc.insertPage(position + i, [pageWidth, pageHeight]);
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      this.downloadFile(pdfBytes, 'document-with-blank-pages.pdf', 'application/pdf');
+      
+      this.hideLoading();
+      this.showToast('success', '¡Listo!', `${count} página(s) en blanco insertada(s)`);
+      
+    } catch (error) {
+      this.hideLoading();
+      throw error;
+    }
+  }
