@@ -56,8 +56,25 @@ class SimpliPDF {
   }
 
   loadHomePage() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     this.currentTool = null;
+    // Restore original homepage content
+    if (this.originalHomeContent) {
+      const app = document.getElementById('app');
+      app.innerHTML = this.originalHomeContent;
+      // Re-setup navigation for restored tool cards
+      document.querySelectorAll('.tool-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          e.preventDefault();
+          const tool = card.getAttribute('data-tool');
+          if (tool) {
+            this.loadTool(tool);
+          }
+        });
+      });
+    } else {
+      window.location.reload();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
 
@@ -66,6 +83,11 @@ class SimpliPDF {
     this.files = [];
     
     const app = document.getElementById('app');
+
+    // Save original home content if not already saved
+    if (!this.originalHomeContent) {
+      this.originalHomeContent = app.innerHTML;
+    }
     
     const toolPages = {
       'merge': this.createMergePage(),
@@ -688,11 +710,12 @@ class SimpliPDF {
     backLink?.addEventListener('click', (e) => {
       e.preventDefault();
       this.loadHomePage();
-      window.location.hash = '';
-      window.location.reload();
     });
 
-    this.setupFileUpload();
+    // Only setup generic file upload for tools that are NOT compare
+    if (toolName !== 'compare') {
+      this.setupFileUpload();
+    }
     this.setupProcessButton(toolName);
     this.setupToolSpecificHandlers(toolName);
   }
@@ -960,6 +983,102 @@ class SimpliPDF {
           await this.renderPagePreviews(this.files[0]);
         }
       });
+    }
+
+    // Compare tool - setup dual file inputs
+    if (toolName === 'compare') {
+      const fileInput1 = document.getElementById('fileInput1');
+      const fileInput2 = document.getElementById('fileInput2');
+      const uploadZone1 = document.getElementById('uploadZone1');
+      const uploadZone2 = document.getElementById('uploadZone2');
+      const processBtn = document.getElementById('processBtn');
+      const compareFiles = document.getElementById('compareFiles');
+
+      const checkBothFiles = () => {
+        const hasFile1 = fileInput1 && fileInput1.files.length > 0;
+        const hasFile2 = fileInput2 && fileInput2.files.length > 0;
+        if (processBtn) {
+          processBtn.disabled = !(hasFile1 && hasFile2);
+        }
+        // Update file list display
+        if (compareFiles) {
+          let html = '';
+          if (hasFile1) {
+            html += `<div class="file-item slide-up">
+              <div class="file-icon"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg></div>
+              <div class="file-info"><div class="file-name">${fileInput1.files[0].name}</div><div class="file-size">${this.formatFileSize(fileInput1.files[0].size)}</div></div>
+            </div>`;
+          }
+          if (hasFile2) {
+            html += `<div class="file-item slide-up">
+              <div class="file-icon"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg></div>
+              <div class="file-info"><div class="file-name">${fileInput2.files[0].name}</div><div class="file-size">${this.formatFileSize(fileInput2.files[0].size)}</div></div>
+            </div>`;
+          }
+          compareFiles.innerHTML = html;
+        }
+      };
+
+      if (fileInput1) {
+        fileInput1.addEventListener('change', checkBothFiles);
+      }
+      if (fileInput2) {
+        fileInput2.addEventListener('change', checkBothFiles);
+      }
+
+      // Drag and drop for upload zone 1
+      if (uploadZone1) {
+        uploadZone1.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploadZone1.classList.add('dragover');
+        });
+        uploadZone1.addEventListener('dragleave', () => {
+          uploadZone1.classList.remove('dragover');
+        });
+        uploadZone1.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploadZone1.classList.remove('dragover');
+          const files = e.dataTransfer.files;
+          if (files.length > 0 && fileInput1) {
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            fileInput1.files = dt.files;
+            checkBothFiles();
+          }
+        });
+        uploadZone1.addEventListener('click', (e) => {
+          if (e.target.tagName !== 'BUTTON') {
+            fileInput1?.click();
+          }
+        });
+      }
+
+      // Drag and drop for upload zone 2
+      if (uploadZone2) {
+        uploadZone2.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploadZone2.classList.add('dragover');
+        });
+        uploadZone2.addEventListener('dragleave', () => {
+          uploadZone2.classList.remove('dragover');
+        });
+        uploadZone2.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploadZone2.classList.remove('dragover');
+          const files = e.dataTransfer.files;
+          if (files.length > 0 && fileInput2) {
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            fileInput2.files = dt.files;
+            checkBothFiles();
+          }
+        });
+        uploadZone2.addEventListener('click', (e) => {
+          if (e.target.tagName !== 'BUTTON') {
+            fileInput2?.click();
+          }
+        });
+      }
     }
   }
 
@@ -1402,7 +1521,12 @@ class SimpliPDF {
   // ═══════════════════════════════════════════════════════
 
   downloadFile(data, filename, mimeType) {
-    const blob = new Blob([data], { type: mimeType });
+    let blob;
+    if (data instanceof Blob) {
+      blob = data;
+    } else {
+      blob = new Blob([data], { type: mimeType });
+    }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1478,11 +1602,6 @@ class SimpliPDF {
       }
     }, 5000);
   }
-}
-
-// Initialize the app
-const app = new SimpliPDF();
-
 
 
   // ═══════════════════════════════════════════════════════
@@ -1750,15 +1869,8 @@ const app = new SimpliPDF();
 </body>
 </html>`;
 
-      const blob = new Blob([docContent], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'converted-document.doc';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const blob = new Blob([docContent], { type: 'application/msword' });
+      this.downloadFile(blob, 'converted-document.doc', 'application/msword');
 
       this.hideLoading();
       this.showToast('success', '¡Listo!', 'PDF convertido a Word (.doc)');
@@ -1818,14 +1930,7 @@ const app = new SimpliPDF();
 
       // Create text file
       const blob = new Blob([fullText], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'ocr-extracted-text.txt';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      this.downloadFile(blob, 'ocr-extracted-text.txt', 'text/plain');
 
       progressBar.style.width = '100%';
       statusEl.textContent = '¡Completado!';
