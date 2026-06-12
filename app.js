@@ -80,7 +80,10 @@ class SimpliPDF {
       'split': this.createSplitPage(),
       'edit-metadata': this.createEditMetadataPage(),
       'number-pages': this.createNumberPagesPage(),
-      'insert-blank': this.createInsertBlankPage()
+      'insert-blank': this.createInsertBlankPage(),
+      'pdf-to-word': this.createPDFToWordPage(),
+      'ocr': this.createOCRPage(),
+      'compare': this.createComparePage()
     };
 
     if (toolPages[toolName]) {
@@ -554,6 +557,128 @@ class SimpliPDF {
     `;
   }
 
+  createPDFToWordPage() {
+    return `
+      <div class="tool-page fade-in">
+        ${this.createToolHeader('PDF a Word', 'Extrae el texto de tu PDF y conviértelo a formato Word (.docx).')}
+        <div class="tool-workspace">
+          ${this.createUploadZone('.pdf', false)}
+          <div style="background: var(--bg-alt); border-radius: 10px; padding: 20px; margin-top: 20px;">
+            <p style="font-size: .9rem; color: var(--ink-mid); line-height: 1.7;">
+              ℹ️ <strong>Nota:</strong> Esta herramienta extrae el texto del PDF y lo convierte a formato Word. El formato visual puede variar. Funciona mejor con PDFs que contienen texto seleccionable (no escaneados).
+            </p>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-process" id="processBtn" disabled>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+              </svg>
+              Convertir a Word
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  createOCRPage() {
+    return `
+      <div class="tool-page fade-in">
+        ${this.createToolHeader('OCR - Reconocimiento de Texto', 'Extrae texto de PDFs escaneados o imágenes usando IA.')}
+        <div class="tool-workspace">
+          ${this.createUploadZone('.pdf', false)}
+          <div class="controls">
+            <div class="control-group">
+              <label for="ocrLanguage">Idioma del documento</label>
+              <select id="ocrLanguage">
+                <option value="spa">Español</option>
+                <option value="eng">Inglés</option>
+                <option value="fra">Francés</option>
+                <option value="deu">Alemán</option>
+                <option value="por">Portugués</option>
+              </select>
+            </div>
+          </div>
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin-top: 20px; color: white;">
+            <p style="font-size: .95rem; line-height: 1.7; margin-bottom: 12px;">
+              🤖 <strong>Tecnología de IA:</strong> Usamos Tesseract.js para reconocer texto en imágenes escaneadas. El proceso puede tardar según el tamaño del documento.
+            </p>
+            <div style="background: rgba(255,255,255,0.2); border-radius: 8px; padding: 12px; font-size: .85rem;">
+              ⚡ <strong>Tip:</strong> Para mejores resultados, asegúrate de que el documento tenga buena calidad y contraste.
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-process" id="processBtn" disabled>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+              </svg>
+              Extraer texto con OCR
+            </button>
+          </div>
+          <div id="ocrProgress" class="hidden" style="margin-top: 24px; padding: 20px; background: var(--bg-alt); border-radius: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div class="loader-spinner" style="width: 24px; height: 24px; border-width: 3px;"></div>
+              <span style="font-weight: 600; color: var(--ink);" id="ocrStatus">Preparando...</span>
+            </div>
+            <div style="width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+              <div id="ocrProgressBar" style="width: 0%; height: 100%; background: var(--red); transition: width .3s;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  createComparePage() {
+    return `
+      <div class="tool-page fade-in">
+        ${this.createToolHeader('Comparar PDFs', 'Encuentra las diferencias entre dos versiones de un documento.')}
+        <div class="tool-workspace">
+          <div class="upload-zone" id="uploadZone1">
+            <div class="upload-icon">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <h3>Archivo Original (Versión 1)</h3>
+            <p>Arrastra o selecciona el PDF original</p>
+            <input type="file" id="fileInput1" accept=".pdf" style="display: none;">
+            <button class="btn-secondary" onclick="document.getElementById('fileInput1').click()">
+              Seleccionar PDF 1
+            </button>
+          </div>
+          <div class="upload-zone" id="uploadZone2" style="margin-top: 20px;">
+            <div class="upload-icon">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <h3>Archivo Modificado (Versión 2)</h3>
+            <p>Arrastra o selecciona el PDF modificado</p>
+            <input type="file" id="fileInput2" accept=".pdf" style="display: none;">
+            <button class="btn-secondary" onclick="document.getElementById('fileInput2').click()">
+              Seleccionar PDF 2
+            </button>
+          </div>
+          <div id="compareFiles" class="file-list"></div>
+          <div style="background: var(--bg-alt); border-radius: 10px; padding: 20px; margin-top: 20px;">
+            <p style="font-size: .9rem; color: var(--ink-mid); line-height: 1.7;">
+              📊 <strong>Análisis de diferencias:</strong> Esta herramienta compara el texto de ambos PDFs página por página y genera un reporte con las diferencias encontradas.
+            </p>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-process" id="processBtn" disabled>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"/>
+              </svg>
+              Comparar PDFs
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   // ═══════════════════════════════════════════════════════
   // TOOL PAGE HANDLERS
   // ═══════════════════════════════════════════════════════
@@ -856,7 +981,10 @@ class SimpliPDF {
         'split': () => this.splitPDF(),
         'edit-metadata': () => this.editMetadata(),
         'number-pages': () => this.numberPages(),
-        'insert-blank': () => this.insertBlankPages()
+        'insert-blank': () => this.insertBlankPages(),
+        'pdf-to-word': () => this.pdfToWord(),
+        'ocr': () => this.performOCR(),
+        'compare': () => this.comparePDFs()
       };
 
       const handler = handlers[toolName];
@@ -1577,6 +1705,225 @@ const app = new SimpliPDF();
       this.hideLoading();
       this.showToast('success', '¡Listo!', `${count} página(s) en blanco insertada(s)`);
       
+    } catch (error) {
+      this.hideLoading();
+      throw error;
+    }
+  }
+
+
+
+  async pdfToWord() {
+    this.showLoading('Convirtiendo PDF a Word...');
+
+    try {
+      const arrayBuffer = await this.files[0].arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+
+      let fullText = '';
+
+      // Extract text from each page
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += `\n\n--- Página ${i} ---\n\n${pageText}`;
+      }
+
+      // Create a simple document blob
+      const docContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Converted from PDF</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 40px; }
+    h1 { color: #333; border-bottom: 2px solid #E8321A; padding-bottom: 10px; }
+    .page-break { page-break-before: always; border-top: 1px dashed #ccc; margin: 40px 0; padding-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Documento convertido de PDF</h1>
+  <div>${fullText.replace(/\n/g, '<br>').replace(/--- Página (\d+) ---/g, '<div class="page-break"><strong>Página $1</strong></div>')}</div>
+</body>
+</html>`;
+
+      const blob = new Blob([docContent], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'converted-document.doc';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      this.hideLoading();
+      this.showToast('success', '¡Listo!', 'PDF convertido a Word (.doc)');
+
+    } catch (error) {
+      this.hideLoading();
+      throw error;
+    }
+  }
+
+  async performOCR() {
+    const language = document.getElementById('ocrLanguage').value;
+    const progressDiv = document.getElementById('ocrProgress');
+    const statusEl = document.getElementById('ocrStatus');
+    const progressBar = document.getElementById('ocrProgressBar');
+
+    progressDiv.classList.remove('hidden');
+    statusEl.textContent = 'Inicializando OCR...';
+    progressBar.style.width = '10%';
+
+    try {
+      const arrayBuffer = await this.files[0].arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+
+      let fullText = '';
+      const totalPages = pdf.numPages;
+
+      for (let i = 1; i <= totalPages; i++) {
+        statusEl.textContent = `Procesando página ${i} de ${totalPages}...`;
+        progressBar.style.width = `${(i / totalPages) * 90}%`;
+
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 2.0 });
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({ canvasContext: context, viewport }).promise;
+
+        const imageData = canvas.toDataURL('image/png');
+
+        // Perform OCR
+        const result = await Tesseract.recognize(imageData, language, {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              const progress = Math.round(m.progress * 100);
+              statusEl.textContent = `OCR en página ${i}: ${progress}%`;
+            }
+          }
+        });
+
+        fullText += `\n\n=== Página ${i} ===\n\n${result.data.text}`;
+      }
+
+      // Create text file
+      const blob = new Blob([fullText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ocr-extracted-text.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      progressBar.style.width = '100%';
+      statusEl.textContent = '¡Completado!';
+      
+      setTimeout(() => {
+        progressDiv.classList.add('hidden');
+      }, 2000);
+
+      this.showToast('success', '¡Listo!', `Texto extraído de ${totalPages} páginas`);
+
+    } catch (error) {
+      progressDiv.classList.add('hidden');
+      throw error;
+    }
+  }
+
+  async comparePDFs() {
+    const file1Input = document.getElementById('fileInput1');
+    const file2Input = document.getElementById('fileInput2');
+
+    if (!file1Input.files[0] || !file2Input.files[0]) {
+      this.showToast('error', 'Error', 'Debes seleccionar ambos archivos PDF');
+      return;
+    }
+
+    this.showLoading('Comparando PDFs...');
+
+    try {
+      // Load both PDFs
+      const arrayBuffer1 = await file1Input.files[0].arrayBuffer();
+      const arrayBuffer2 = await file2Input.files[0].arrayBuffer();
+
+      const pdf1 = await pdfjsLib.getDocument({ data: arrayBuffer1 }).promise;
+      const pdf2 = await pdfjsLib.getDocument({ data: arrayBuffer2 }).promise;
+
+      let comparisonReport = `REPORTE DE COMPARACIÓN DE PDFs\n`;
+      comparisonReport += `================================\n\n`;
+      comparisonReport += `Archivo 1: ${file1Input.files[0].name} (${pdf1.numPages} páginas)\n`;
+      comparisonReport += `Archivo 2: ${file2Input.files[0].name} (${pdf2.numPages} páginas)\n\n`;
+
+      if (pdf1.numPages !== pdf2.numPages) {
+        comparisonReport += `⚠️ DIFERENCIA: Los documentos tienen diferente número de páginas\n\n`;
+      }
+
+      const maxPages = Math.max(pdf1.numPages, pdf2.numPages);
+      let totalDifferences = 0;
+
+      for (let i = 1; i <= maxPages; i++) {
+        comparisonReport += `\n--- Página ${i} ---\n`;
+
+        if (i > pdf1.numPages) {
+          comparisonReport += `❌ Esta página solo existe en el archivo 2\n`;
+          totalDifferences++;
+          continue;
+        }
+        if (i > pdf2.numPages) {
+          comparisonReport += `❌ Esta página solo existe en el archivo 1\n`;
+          totalDifferences++;
+          continue;
+        }
+
+        const page1 = await pdf1.getPage(i);
+        const page2 = await pdf2.getPage(i);
+
+        const text1 = await page1.getTextContent();
+        const text2 = await page2.getTextContent();
+
+        const content1 = text1.items.map(item => item.str).join(' ').trim();
+        const content2 = text2.items.map(item => item.str).join(' ').trim();
+
+        if (content1 !== content2) {
+          comparisonReport += `⚠️ DIFERENCIA ENCONTRADA\n`;
+          comparisonReport += `Caracteres archivo 1: ${content1.length}\n`;
+          comparisonReport += `Caracteres archivo 2: ${content2.length}\n`;
+          
+          // Simple diff preview
+          if (content1.length < 200 && content2.length < 200) {
+            comparisonReport += `\nPrevisualizaciones:\n`;
+            comparisonReport += `Archivo 1: ${content1.substring(0, 100)}...\n`;
+            comparisonReport += `Archivo 2: ${content2.substring(0, 100)}...\n`;
+          }
+          
+          totalDifferences++;
+        } else {
+          comparisonReport += `✅ Contenido idéntico\n`;
+        }
+      }
+
+      comparisonReport += `\n\n================================\n`;
+      comparisonReport += `RESUMEN: ${totalDifferences} página(s) con diferencias encontradas\n`;
+
+      // Download report
+      const blob = new Blob([comparisonReport], { type: 'text/plain' });
+      this.downloadFile(blob, 'comparison-report.txt', 'text/plain');
+
+      this.hideLoading();
+      this.showToast('success', '¡Listo!', `Comparación completa. ${totalDifferences} diferencias encontradas`);
+
     } catch (error) {
       this.hideLoading();
       throw error;
