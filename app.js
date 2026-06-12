@@ -1929,3 +1929,8 @@ const app = new SimpliPDF();
       throw error;
     }
   }
+
+}
+
+// Initialize the app
+const app = new SimpliPDF();
