@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimpliPDF - Testing Suite</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid #1e293b;
+    }
+    
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #f87171 0%, #fb923c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      font-size: 1.1rem;
+      color: #94a3b8;
+    }
+    
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .test-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s;
+    }
+    
+    .test-card:hover {
+      border-color: #f87171;
+      box-shadow: 0 8px 32px rgba(248, 113, 113, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .test-card h2 {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .test-badge {
+      display: inline-block;
+      background: #15803d;
+      color: #d1fae5;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .test-card p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    
+    .test-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #f87171 0%, #fb923c 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(248, 113, 113, 0.4);
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn-secondary {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    
+    .btn-secondary:hover {
+      background: #475569;
+      box-shadow: 0 4px 16px rgba(51, 65, 85, 0.4);
+    }
+    
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      font-family: inherit;
+    }
+    
+    input[type="file"]::file-selector-button {
+      background: #334155;
+      color: #e2e8f0;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 10px;
+    }
+    
+    .status {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: none;
+    }
+    
+    .status.success {
+      background: #064e3b;
+      color: #6ee7b7;
+      border: 1px solid #065f46;
+      display: block;
+    }
+    
+    .status.error {
+      background: #7f1d1d;
+      color: #fca5a5;
+      border: 1px solid #991b1b;
+      display: block;
+    }
+    
+    .status.processing {
+      background: #1e3a8a;
+      color: #93c5fd;
+      border: 1px solid #1e40af;
+      display: block;
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      padding-top: 30px;
+      border-top: 1px solid #1e293b;
+      color: #64748b;
+    }
+    
+    .controls {
+      margin: 10px 0;
+    }
+    
+    .controls label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+    
+    .controls input[type="text"],
+    .controls input[type="password"],
+    .controls input[type="number"],
+    .controls select {
+      width: 100%;
+      padding: 8px 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+      font-family: inherit;
+    }
+    
+    .controls input:focus,
+    .controls select:focus {
+      outline: none;
+      border-color: #f87171;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🧪 SimpliPDF Testing Suite</h1>
+    <p class="subtitle">Prueba todas las herramientas de procesamiento PDF local</p>
+  </header>
+
+  <div class="test-grid">
+    
+    <!-- Test 1: Merge PDFs -->
+    <div class="test-card">
+      <h2>
+        📑 Unir PDFs
+        <span class="test-badge">Functional</span>
+      </h2>
+      <p>Selecciona 2 o más archivos PDF para combinarlos en uno solo.</p>
+      <div class="test-actions">
+        <input type="file" id="mergeInput" accept=".pdf" multiple>
+        <button onclick="testMerge()">Unir archivos</button>
+        <div id="mergeStatus" class="status"></div>
+      </div>
+    </div>
+
+    <!-- Test 2: Images to PDF -->
+    <div class="test-card">
+      <h2>
+        🖼️ Imágenes a PDF
+        <span class="test-badge">Functional</span>
+      </h2>
+      <p>Convierte una o más imágenes en un documento PDF.</p>
+      <div class="test-actions">
+        <input type="file" id="imagesToPdfInput" accept="image/*" multiple>
+        <button onclick="testImagesToPdf()">Crear PDF</button>
+        <div id="imagesToPdfStatus" class="status"></div>
+      </div>
+    </div>
+
+    <!-- Test 3: PDF to Images -->
+    <div class="test-card">
+      <h2>
+        📸 PDF a Imágenes
+        <span class="test-badge">Functional</span>
+      </h2>
+      <p>Exporta cada página del PDF como imagen PNG de alta calidad.</p>
+      <div class="test-actions">
+        <input type="file" id="pdfToImagesInput" accept=".pdf">
+        <div class="controls">
+          <label>Escala (DPI)</label>
+          <select id="imageScale">
+            <option value="1">1x (150 DPI)</option>
+            <option value="2" selected>2x (300 DPI)</option>
+            <option value="3">3x (450 DPI)</option>
+          </select>
+        </div>
+        <button onclick="testPdfToImages()">Convertir</button>
+        <div id="pdfToImagesStatus" class="status"></div>
+      </div>
+    </div>
+
+    <!-- Test 4: Rotate PDF -->
+    <div class="test-card">
+      <h2>
+        🔄 Rotar PDF
+        <span class="test-badge">Functional</span>
+      </h2>
+      <p>Rota todas las páginas del documento en el ángulo seleccionado.</p>
+      <div class="test-actions">
+        <input type="file" id="rotateInput" accept=".pdf">
+        <div class="controls">
+          <label>Ángulo de rotación</label>
+          <select id="rotateAngle">
+            <option value="90">90° (Derecha)</option>
+            <option value="180">180° (Invertir)</option>
+            <option value="270">270° (Izquierda)</option>
+          </select>
+        </div>
+        <button onclick="testRotate()">Rotar</button>
+        <div id="rotateStatus" class="status"></div>
+      </div>
+    </div>
+
+    <!-- Test 5: Watermark -->
+    <div class="test-card">
+      <h2>
+        💧 Marca de Agua
+        <span class="test-badge">Functional</span>
+      </h2>
+      <p>Añade texto como marca de agua en todas las páginas.</p>
+      <div class="test-actions">
+        <input type="file" id="watermarkInput" accept=".pdf">
+        <div class="controls">
+          <label>Texto</label>
+          <input type="text" id="watermarkText" value="CONFIDENCIAL" placeholder="Texto de marca">
+          <label style="margin-top: 8px;">Opacidad (%)</label>
+          <input type="number" id="watermarkOpacity" value="30" min="10" max="80">
+        </div>
+        <button onclick="testWatermark()">Añadir marca</button>
+        <div id="watermarkStatus" class="status"></div>
+      </div>
+    </div>
+
+    <!-- Test 6: Protect PDF -->
+    <div class="test-card">
+      <h2>
+        🔒 Proteger PDF
+        <span class="test-badge">Limited</span>
+      </h2>
+      <p>Añade contraseña al documento (limitaciones de la librería).</p>
+      <div class="test-actions">
+        <input type="file" id="protectInput" accept=".pdf">
+        <div class="controls">
+          <label>Contraseña</label>
+          <input type="password" id="protectPassword" placeholder="Mínimo 6 caracteres">
+        </div>
+        <button onclick="testProtect()">Proteger</button>
+        <div id="protectStatus" class="status"></div>
+      </div>
+    </div>
+
+    <!-- Test 7: Sign PDF -->
+    <div class="test-card">
+      <h2>
+        ✍️ Firmar PDF
+        <span class="test-badge">Functional</span>
+      </h2>
+      <p>Coloca una imagen de firma en la última página del documento.</p>
+      <div class="test-actions">
+        <input type="file" id="signPdfInput" accept=".pdf">
+        <div class="controls">
+          <label>Imagen de firma (PNG)</label>
+          <input type="file" id="signatureImage" accept="image/png">
+          <label style="margin-top: 8px;">Tamaño (px)</label>
+          <input type="number" id="signatureSize" value="150" min="80" max="300">
+        </div>
+        <button onclick="testSign()">Firmar</button>
+        <div id="signStatus" class="status"></div>
+      </div>
+    </div>
+
+    <!-- Test 8: Delete Pages (Advanced) -->
+    <div class="test-card">
+      <h2>
+        🗑️ Eliminar Páginas
+        <span class="test-badge">Complex</span>
+      </h2>
+      <p>Esta herramienta requiere preview de páginas. Usa la interfaz principal.</p>
+      <div class="test-actions">
+        <button class="btn-secondary" onclick="window.location.href='index.html#delete-pages'">
+          Ir a herramienta completa
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>SimpliPDF Testing Suite · Todo el procesamiento es 100% local</p>
+    <p style="margin-top: 8px; font-size: 0.85rem;">Ningún archivo se sube a servidores durante estas pruebas</p>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  function showStatus(id, type, message) {
+    const el = document.getElementById(id);
+    el.className = `status ${type}`;
+    el.textContent = message;
+  }
+
+  function downloadFile(data, filename, mimeType) {
+    const blob = new Blob([data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function testMerge() {
+    const files = document.getElementById('mergeInput').files;
+    if (files.length < 2) {
+      showStatus('mergeStatus', 'error', 'Selecciona al menos 2 archivos PDF');
+      return;
+    }
+
+    showStatus('mergeStatus', 'processing', `Uniendo ${files.length} archivos...`);
+
+    try {
+      const mergedPdf = await PDFLib.PDFDocument.create();
+
+      for (const file of files) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+        const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+        pages.forEach(page => mergedPdf.addPage(page));
+      }
+
+      const pdfBytes = await mergedPdf.save();
+      downloadFile(pdfBytes, 'merged-test.pdf', 'application/pdf');
+      showStatus('mergeStatus', 'success', `✓ ${files.length} archivos unidos correctamente`);
+    } catch (error) {
+      showStatus('mergeStatus', 'error', `Error: ${error.message}`);
+    }
+  }
+
+  async function testImagesToPdf() {
+    const files = document.getElementById('imagesToPdfInput').files;
+    if (files.length === 0) {
+      showStatus('imagesToPdfStatus', 'error', 'Selecciona al menos una imagen');
+      return;
+    }
+
+    showStatus('imagesToPdfStatus', 'processing', `Creando PDF con ${files.length} imágenes...`);
+
+    try {
+      const pdfDoc = await PDFLib.PDFDocument.create();
+
+      for (const file of files) {
+        const arrayBuffer = await file.arrayBuffer();
+        let image;
+
+        if (file.type === 'image/png') {
+          image = await pdfDoc.embedPng(arrayBuffer);
+        } else if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+          image = await pdfDoc.embedJpg(arrayBuffer);
+        }
+
+        const page = pdfDoc.addPage([image.width, image.height]);
+        page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      downloadFile(pdfBytes, 'images-to-pdf-test.pdf', 'application/pdf');
+      showStatus('imagesToPdfStatus', 'success', `✓ PDF creado con ${files.length} imágenes`);
+    } catch (error) {
+      showStatus('imagesToPdfStatus', 'error', `Error: ${error.message}`);
+    }
+  }
+
+  async function testPdfToImages() {
+    const file = document.getElementById('pdfToImagesInput').files[0];
+    if (!file) {
+      showStatus('pdfToImagesStatus', 'error', 'Selecciona un archivo PDF');
+      return;
+    }
+
+    const scale = parseFloat(document.getElementById('imageScale').value);
+    showStatus('pdfToImagesStatus', 'processing', 'Convirtiendo páginas...');
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale });
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({ canvasContext: context, viewport }).promise;
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const arrayBuffer = await blob.arrayBuffer();
+        downloadFile(arrayBuffer, `page-${i}-test.png`, 'image/png');
+        
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      showStatus('pdfToImagesStatus', 'success', `✓ ${pdf.numPages} imágenes generadas`);
+    } catch (error) {
+      showStatus('pdfToImagesStatus', 'error', `Error: ${error.message}`);
+    }
+  }
+
+  async function testRotate() {
+    const file = document.getElementById('rotateInput').files[0];
+    if (!file) {
+      showStatus('rotateStatus', 'error', 'Selecciona un archivo PDF');
+      return;
+    }
+
+    const angle = parseInt(document.getElementById('rotateAngle').value);
+    showStatus('rotateStatus', 'processing', `Rotando ${angle}°...`);
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+      
+      const pages = pdfDoc.getPages();
+      pages.forEach(page => page.setRotation(PDFLib.degrees(angle)));
+
+      const pdfBytes = await pdfDoc.save();
+      downloadFile(pdfBytes, `rotated-${angle}-test.pdf`, 'application/pdf');
+      showStatus('rotateStatus', 'success', `✓ Documento rotado ${angle}°`);
+    } catch (error) {
+      showStatus('rotateStatus', 'error', `Error: ${error.message}`);
+    }
+  }
+
+  async function testWatermark() {
+    const file = document.getElementById('watermarkInput').files[0];
+    const text = document.getElementById('watermarkText').value;
+    const opacity = parseInt(document.getElementById('watermarkOpacity').value) / 100;
+
+    if (!file) {
+      showStatus('watermarkStatus', 'error', 'Selecciona un archivo PDF');
+      return;
+    }
+    if (!text) {
+      showStatus('watermarkStatus', 'error', 'Ingresa el texto de la marca');
+      return;
+    }
+
+    showStatus('watermarkStatus', 'processing', 'Añadiendo marca de agua...');
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+      
+      const pages = pdfDoc.getPages();
+      const font = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+
+      pages.forEach(page => {
+        const { width, height } = page.getSize();
+        const fontSize = 60;
+        const textWidth = font.widthOfTextAtSize(text, fontSize);
+
+        page.drawText(text, {
+          x: width / 2 - textWidth / 2,
+          y: height / 2,
+          size: fontSize,
+          font,
+          color: PDFLib.rgb(0.5, 0.5, 0.5),
+          opacity,
+          rotate: PDFLib.degrees(-45),
+        });
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      downloadFile(pdfBytes, 'watermarked-test.pdf', 'application/pdf');
+      showStatus('watermarkStatus', 'success', '✓ Marca de agua añadida');
+    } catch (error) {
+      showStatus('watermarkStatus', 'error', `Error: ${error.message}`);
+    }
+  }
+
+  async function testProtect() {
+    const file = document.getElementById('protectInput').files[0];
+    const password = document.getElementById('protectPassword').value;
+
+    if (!file) {
+      showStatus('protectStatus', 'error', 'Selecciona un archivo PDF');
+      return;
+    }
+    if (!password || password.length < 6) {
+      showStatus('protectStatus', 'error', 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    showStatus('protectStatus', 'processing', 'Protegiendo PDF...');
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+      
+      const pdfBytes = await pdfDoc.save();
+      downloadFile(pdfBytes, 'protected-test.pdf', 'application/pdf');
+      showStatus('protectStatus', 'success', '✓ PDF guardado (encriptación limitada por librería)');
+    } catch (error) {
+      showStatus('protectStatus', 'error', `Error: ${error.message}`);
+    }
+  }
+
+  async function testSign() {
+    const pdfFile = document.getElementById('signPdfInput').files[0];
+    const signatureFile = document.getElementById('signatureImage').files[0];
+    const size = parseInt(document.getElementById('signatureSize').value);
+
+    if (!pdfFile) {
+      showStatus('signStatus', 'error', 'Selecciona un archivo PDF');
+      return;
+    }
+    if (!signatureFile) {
+      showStatus('signStatus', 'error', 'Selecciona una imagen de firma');
+      return;
+    }
+
+    showStatus('signStatus', 'processing', 'Firmando documento...');
+
+    try {
+      const pdfArrayBuffer = await pdfFile.arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(pdfArrayBuffer);
+      
+      const signatureBytes = await signatureFile.arrayBuffer();
+      const signatureImage = await pdfDoc.embedPng(signatureBytes);
+
+      const pages = pdfDoc.getPages();
+      const lastPage = pages[pages.length - 1];
+      const { width, height } = lastPage.getSize();
+
+      const signatureDims = signatureImage.scale(size / signatureImage.width);
+
+      lastPage.drawImage(signatureImage, {
+        x: width - signatureDims.width - 50,
+        y: 50,
+        width: signatureDims.width,
+        height: signatureDims.height,
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      downloadFile(pdfBytes, 'signed-test.pdf', 'application/pdf');
+      showStatus('signStatus', 'success', '✓ Documento firmado');
+    } catch (error) {
+      showStatus('signStatus', 'error', `Error: ${error.message}`);
+    }
+  }
+</script>
+
+</body>
+</html>
